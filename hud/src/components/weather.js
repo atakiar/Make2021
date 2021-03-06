@@ -15,28 +15,29 @@ import { Header } from 'semantic-ui-react';
 
 const Weather = (props) => {
   const getWeatherIconFromName = (iconName) => {
-    const size = '250px';
+    const size = '300px';
+    const color = ' #ff695e';
     switch (iconName.substring(0, 2)) {
       case '01':
-        return <WiDaySunny size={size} />;
+        return <WiDaySunny size={size} color={color} />;
       case '02':
-        return <WiDayCloudy size={size} />;
+        return <WiDayCloudy size={size} color={color} />;
       case '03':
-        return <WiCloudy size={size} />;
+        return <WiCloudy size={size} color={color} />;
       case '04':
-        return <WiCloudyWindy size={size} />;
+        return <WiCloudyWindy size={size} color={color} />;
       case '09':
-        return <WiShowers size={size} />;
+        return <WiShowers size={size} color={color} />;
       case '10':
-        return <WiRain size={size} />;
+        return <WiRain size={size} color={color} />;
       case '11':
-        return <WiThunderstorm size={size} />;
+        return <WiThunderstorm size={size} color={color} />;
       case '13':
-        return <WiSnowflakeCold size={size} />;
+        return <WiSnowflakeCold size={size} color={color} />;
       case '50':
-        return <WiFog size={size} />;
+        return <WiFog size={size} color={color} />;
       default:
-        return <WiCloud size={size} />;
+        return <WiCloud size={size} color={color} />;
     }
   };
 
@@ -48,11 +49,10 @@ const Weather = (props) => {
   return (
     <Header
       style={{
-        marginTop: '110px',
+        marginTop: '80px',
         marginLeft: '40px',
         fontSize: '100px',
       }}
-      color="red"
       inverted
     >
       {getWeatherIconFromName(icon)}
