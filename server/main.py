@@ -1,14 +1,22 @@
 import time
 import serial
 import threading
+import os
 from requests import get
 from typing import Any, Dict
 from flask import Flask, jsonify
 from flask_cors import CORS
+from twilio.rest import Client
+
+# Twillio Setup
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
+to_phone_number = os.environ['PHONE_NUMBER']
+client = Client(account_sid, auth_token)
 
 
 # Serial Setup
-ser = serial.Serial("/dev/ttyACM0", 9600)
+# ser = serial.Serial("/dev/ttyACM0", 9600)
 time.sleep(2)
 
 # Flask Setup
@@ -42,6 +50,15 @@ def sendArduinoData() -> None:
     message = "Hello World"
     writeToArduino(message)
 
+# SMS helper functions
+def sendSMS(message: str) -> None:
+    client.messages \
+                .create(
+                     body=message,
+                     from_='+16144121004',
+                     to=to_phone_number
+                 )
+
 
 # Flask Helpers
 @app.route("/")
@@ -52,9 +69,10 @@ def root() -> Dict[str, Any]:
 
 # Main
 def main() -> None:
-    sendArduinoData()
-    getArduinoData()
-    app.run(host="0.0.0.0")
+    # sendArduinoData()
+    # getArduinoData()
+    # app.run(host="0.0.0.0")
+    sendSMS("Execute Order 66")
 
 
 if __name__ == "__main__":
