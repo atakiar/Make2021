@@ -1,0 +1,64 @@
+{
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["airbnb", "plugin:prettier/recommended"],
+  "plugins": ["react", "import", "prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "jsx-a11y": "off",
+    "constructor-super": "warn",
+    "no-console": "warn",
+    "no-const-assign": "warn",
+    "no-else-return": "error",
+    "no-param-reassign": "off",
+    "no-this-before-super": "warn",
+    "no-undef": "error",
+    "no-undefined": "error",
+    "no-unreachable": "error",
+    "no-unused-vars": "warn",
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "valid-typeof": "warn",
+    "react/jsx-filename-extension": [
+      "error",
+      { "extensions": [".js", ".jsx"] }
+    ],
+    "react/destructuring-assignment": "off",
+    "react/jsx-first-prop-new-line": ["warn", "multiline"],
+    "react/jsx-props-no-spreading": "off",
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
+    "react/jsx-wrap-multilines": "off",
+    "react/prop-types": "off",
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal"],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["react"],
+        "newlines-between": "never",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "import/no-extraneous-dependencies": "error",
+    "import/no-unresolved": "error"
+  }
+}
