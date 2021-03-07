@@ -3,7 +3,9 @@ import fetch from 'cross-fetch';
 import { Grid } from 'semantic-ui-react';
 import Status from './components/status';
 import Time from './components/time';
+import Warning from './components/warning';
 import Weather from './components/weather';
+import { weatherURL, serverURL, flags } from './config';
 
 class App extends Component {
   constructor(props) {
@@ -22,12 +24,14 @@ class App extends Component {
         sound: 73,
         gas: 3000,
         uv: 10,
-        pulse: 70,
+        fall: false,
       },
+      warningActive: false,
+      warningType: 'electricity',
     };
 
     this.failCount = 0;
-    this.failCountThreshold = 60;
+    this.failCountThreshold = flags.failCountThreshold;
   }
 
   componentDidMount = async () => {
@@ -35,13 +39,13 @@ class App extends Component {
     await this.getWeather();
     await this.getData();
 
-    this.updateTime = setInterval(this.getTime, 1000);
+    this.updateTime = setInterval(this.getTime, flags.updateTimeInterval);
     this.updateWeather = setInterval(async () => {
       await this.getWeather();
-    }, 1000 * 60 * 60);
+    }, flags.updateWeatherInterval);
     this.updateData = setInterval(async () => {
       await this.getData();
-    }, 500);
+    }, flags.updateDataInterval);
   };
 
   componentWillUnmount = () => {
@@ -60,9 +64,7 @@ class App extends Component {
 
   getWeather = async () => {
     try {
-      const res = await fetch(
-        'https://api.openweathermap.org/data/2.5/weather?id=4513057&appid=20479d1b73eacd0ef1c2bf44c8a36635&units=imperial',
-      );
+      const res = await fetch(weatherURL);
 
       if (res.status >= 400) {
         console.log(`Error. App.getWeather failed with ${res.status}`);
@@ -112,7 +114,7 @@ class App extends Component {
         return;
       }
 
-      const res = await fetch('http://localhost:5000/data');
+      const res = await fetch(serverURL);
 
       if (res.status >= 400) {
         console.log(`Error. App.getData failed with ${res.status}`);
@@ -120,7 +122,8 @@ class App extends Component {
       }
 
       const data = await res.json();
-      if (data && data?.electricity && data?.gas && data?.sound) {
+      if (data) {
+        this.createWarnings(data);
         this.setState({ data });
         this.failCount = 0;
       } else {
@@ -131,6 +134,52 @@ class App extends Component {
       console.log(error);
       this.failCount += 1;
     }
+  };
+
+  createWarnings = (data) => {
+    const warningCreated = this.analyzeData(data);
+    if (warningCreated) {
+      setTimeout(() => {
+        this.setState({ warningActive: false });
+      }, flags.warningDuration);
+    }
+  };
+
+  analyzeData = (data) => {
+    if (!data || this.state.warningActive) {
+      return false;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(data, 'fall')) {
+      this.setState({ warningType: 'fall', warningActive: true });
+      return true;
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'electricity')) {
+      if (data.electricity > flags.warningThreshold.electricity) {
+        this.setState({ warningType: 'electricity', warningActive: true });
+        return true;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'sound')) {
+      if (data.sound > flags.warningThreshold.sound) {
+        this.setState({ warningType: 'sound', warningActive: true });
+        return true;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'gas')) {
+      if (data.gas > flags.warningThreshold.gas) {
+        this.setState({ warningType: 'gas', warningActive: true });
+        return true;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(data, 'uv')) {
+      if (data.uv > flags.warningThreshold.uv) {
+        this.setState({ warningType: 'uv', warningActive: true });
+        return true;
+      }
+    }
+
+    return false;
   };
 
   render() {
@@ -152,6 +201,13 @@ class App extends Component {
               <Weather weather={this.state.weather} />
             </Grid.Column>
           </Grid.Row>
+          {this.state.warningActive ? (
+            <Grid.Row columns={1}>
+              <Grid.Column>
+                <Warning type={this.state.warningType} />
+              </Grid.Column>
+            </Grid.Row>
+          ) : null}
           <Grid.Row columns={3}>
             <Grid.Column>
               <Status type="electricity" value={this.state.data.electricity} />

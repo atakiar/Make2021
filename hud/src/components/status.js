@@ -1,35 +1,45 @@
 import React from 'react';
 import { GiElectric, GiGasMask, GiSpeaker } from 'react-icons/gi';
 import { Header } from 'semantic-ui-react';
+import { flags } from '../config';
 
 const Status = (props) => {
   const getColor = (type, value) => {
     let color = null;
     switch (type) {
       case 'electricity':
-        if (value >= 0 && value < 50) {
+        if (value < flags.statusThreshold.electricity.mid) {
           color = null;
-        } else if (value >= 50 && value < 70) {
+        } else if (
+          value >= flags.statusThreshold.electricity.mid &&
+          value < flags.statusThreshold.electricity.high
+        ) {
           color = 'yellow';
-        } else if (value >= 70 && props.value <= 100) {
+        } else if (value >= flags.statusThreshold.electricity.high) {
           color = 'red';
         }
         return color;
       case 'gas':
-        if (value >= 0 && value < 1500) {
+        if (value < flags.statusThreshold.gas.mid) {
           color = null;
-        } else if (value >= 1500 && value < 3000) {
+        } else if (
+          value >= flags.statusThreshold.electricity.mid &&
+          value < flags.statusThreshold.electricity.high
+        ) {
           color = 'yellow';
-        } else if (value >= 3000) {
+        } else if (value >= flags.statusThreshold.electricity.high) {
           color = 'red';
         }
         return color;
       case 'sound':
-        if (value >= 0 && value < 50) {
+        if (value < flags.statusThreshold.sound.mid) {
           color = null;
-        } else if (value >= 50 && value < 75) {
+        } else if (
+          value >= flags.statusThreshold.sound.mid &&
+          value < flags.statusThreshold.sound.high
+        ) {
           color = 'yellow';
-        } else if (value >= 75) {
+        } else if (value >= flags.statusThreshold.sound.high) {
           color = 'red';
         }
         return color;
@@ -68,7 +78,7 @@ const Status = (props) => {
   return (
     <Header
       style={{
-        marginTop: '100px',
+        marginTop: '40px',
         marginLeft: '40px',
         fontSize: '80px',
       }}
