@@ -30,6 +30,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "output": "tar -czvf build.tar.gz build/",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
