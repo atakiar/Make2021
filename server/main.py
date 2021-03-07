@@ -15,7 +15,7 @@ to_phone_number = os.environ['PHONE_NUMBER']
 client = Client(account_sid, auth_token)
 
 # Serial Setup
-ser = serial.Serial("/dev/ttyUSB0", 9600)
+ser = serial.Serial("/dev/ttyACM0", 9600)
 time.sleep(2)
 
 # Flask Setup
@@ -30,6 +30,7 @@ uv = 0
 temperature = 0
 humid = 0
 fall_event = False
+sent_text = False
 
 # Arduino Helpers
 def readFromArduino() -> str:
@@ -44,19 +45,25 @@ def writeToArduino(message: str) -> None:
 
 
 def getArduinoData() -> None:
-    threading.Timer(0.500, getArduinoData).start()
+    threading.Timer(0.5, getArduinoData).start()
     message = readFromArduino()
     if message and message != "" and message.replace(" ", "") != "":
         # Update globals / return data here
         data_points = message.split(",")
-        global sound, uv, gas, temperature, electricity, humid, fall_event
-        electricity = int(float(data_points[0]) *100)
-        sound = data_points[1]
+        global sound, uv, gas, temperature, electricity, humid, fall_event, sent_text
+        electricity = int(float(data_points[0]))
+        sound = int(float(data_points[1]))
         uv = data_points[2]
-        gas = data_points[3]
+        gas = int(float(data_points[3]))
         temperature = data_points[4]
         humid = data_points[5]
         fall_event = data_points[6] == '1'
+        if(not sent_text and fall_event):
+            sent_text = True
+            sendSMS('Employee Jon has taken a fall!')
+            print('Sent text')
+        elif(sent_text and not fall_event):
+            sent_text = False
         print(data_points)
 
 
@@ -96,6 +103,7 @@ def hud() -> Dict[str, Any]:
 # Main
 def main() -> None:
     # sendArduinoData()
+    time.sleep(3)
     getArduinoData()
     app.run(host="0.0.0.0", port=5000)
     # sendSMS("Execute Order 66")
