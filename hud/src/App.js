@@ -17,25 +17,37 @@ class App extends Component {
         icon: '01d',
         temperature: 33,
       },
-      electricity: 5,
-      gas: 3000,
-      sound: 73,
+      data: {
+        electricity: 5,
+        sound: 73,
+        gas: 3000,
+        uv: 10,
+        pulse: 70,
+      },
     };
+
+    this.failCount = 0;
+    this.failCountThreshold = 60;
   }
 
   componentDidMount = async () => {
     this.getTime();
     await this.getWeather();
+    await this.getData();
 
-    this.updateTime = setInterval(this.getTime, 1000 * 60);
+    this.updateTime = setInterval(this.getTime, 1000);
     this.updateWeather = setInterval(async () => {
       await this.getWeather();
     }, 1000 * 60 * 60);
+    this.updateData = setInterval(async () => {
+      await this.getData();
+    }, 500);
   };
 
   componentWillUnmount = () => {
     clearInterval(this.updateTime);
     clearInterval(this.updateWeather);
+    clearInterval(this.updateData);
   };
 
   getTime = () => {
@@ -57,20 +69,67 @@ class App extends Component {
       }
 
       const data = await res.json();
-      this.setState({
-        weather: {
-          icon: data.weather[0].icon,
-          description: data.weather[0].description
-            .toLowerCase()
-            .split(' ')
-            .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-            .join(' '),
-          temperature: Math.round(data.main.temp),
-          feelsLike: Math.round(data.main.feels_like),
-        },
-      });
+      if (data && data?.weather && data.weather.length > 0) {
+        if (data.weather[0].icon) {
+          this.setState({ weather: { icon: data.weather[0].icon } });
+        }
+        if (data.weather[0].description) {
+          this.setState({
+            weather: {
+              description: data.weather[0].description
+                .toLowerCase()
+                .split(' ')
+                .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+                .join(' '),
+            },
+          });
+        }
+      }
+      if (data && data?.main) {
+        if (data.main.temp) {
+          this.setState({
+            weather: { temperature: Math.round(data.main.temp) },
+          });
+        }
+        if (data.main.feels_like) {
+          this.setState({
+            weather: { feelsLike: Math.round(data.main.feels_like) },
+          });
+        }
+      }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  getData = async () => {
+    try {
+      if (this.failCount > this.failCountThreshold) {
+        console.log(
+          `Error. App.getData exceeded failCountThreshold of ${this.failCountThreshold}`,
+        );
+        clearInterval(this.updateData);
+        return;
+      }
+
+      const res = await fetch('http://localhost:5000/data');
+
+      if (res.status >= 400) {
+        console.log(`Error. App.getData failed with ${res.status}`);
+        this.failCount += 1;
+      }
+
+      const data = await res.json();
+      if (data && data?.electricity && data?.gas && data?.sound) {
+        this.setState({ data });
+        this.failCount = 0;
+      } else {
+        console.log('Error. App.getData received bad data');
+        this.failCount += 1;
+      }
+    } catch (error) {
+      console.log(error);
+      this.failCount += 1;
     }
   };
 
@@ -95,13 +154,13 @@ class App extends Component {
           </Grid.Row>
           <Grid.Row columns={3}>
             <Grid.Column>
-              <Status type="electricity" value={this.state.electricity} />
+              <Status type="electricity" value={this.state.data.electricity} />
             </Grid.Column>
             <Grid.Column>
-              <Status type="sound" value={this.state.sound} />
+              <Status type="sound" value={this.state.data.sound} />
             </Grid.Column>
             <Grid.Column>
-              <Status type="gas" value={this.state.gas} />
+              <Status type="gas" value={this.state.data.gas} />
             </Grid.Column>
           </Grid.Row>
         </Grid>
