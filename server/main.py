@@ -56,8 +56,7 @@ def getArduinoData() -> None:
         gas = data_points[3]
         temperature = data_points[4]
         humid = data_points[5]
-        if(data_points[6] == '1'):
-            fall_event = True
+        fall_event = data_points[6] == '1'
         print(data_points)
 
 
