@@ -29,7 +29,7 @@ gas = 0
 uv = 0
 temperature = 0
 pulse = 0
-fall_event = 0
+fall_event = False
 
 # Arduino Helpers
 def readFromArduino() -> str:
@@ -49,13 +49,15 @@ def getArduinoData() -> None:
     if message and message != "" and message.replace(" ", "") != "":
         # Update globals / return data here
         data_points = message.split()
-        sound = message[0]
-        uv = message[1]
-        gas = message[2]
-        temperature = message[3]
-        electricity = message[4]
-        pulse = message[5]
-        fall_event = message[6]
+        global sound, uv, gas, temperature, electricity, pulse, fall_event
+        sound = data_points[0]
+        uv = data_points[1]
+        gas = data_points[2]
+        temperature = data_points[3]
+        electricity = data_points[4]
+        pulse = data_points[5]
+        if(data_points[6] == '1'):
+            fall_event = data_points[6]
         print(data_points)
 
 
@@ -83,7 +85,10 @@ def root() -> Dict[str, Any]:
 
 @app.route("/hud")
 def hud() -> Dict[str, Any]:
-    return {"electricity": electricity, "sound": sound, "gas": gas}
+    global sound, uv, gas, temperature, electricity, pulse, fall_event
+    data = {"electricity": electricity, "sound": sound, "gas": gas, "uv":uv, "temperature": temperature, "pulse" : pulse, "fall_event": fall_event}
+    fall_event = False
+    return data
 
 # GET /hud
 # gas (int), sound (int), electricity (int 0-100)
